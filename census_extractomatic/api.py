@@ -696,14 +696,12 @@ def geo_tiles(release, sumlevel, zoom, x, y):
 
         result = db.session.execute(
             """SELECT
-                ST_AsGeoJSON(ST_SimplifyPreserveTopology(
-                    ST_Intersection(ST_Buffer(ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 4326), %f, 'join=mitre'), geom),
-                    %f), 5) as geom,
+                ST_AsGeoJSON(ST_SimplifyPreserveTopology(geom, %f), 5) AS geom,
                 full_geoid,
                 display_name
                FROM %s.census_name_lookup
                WHERE sumlevel=:sumlev AND ST_Intersects(ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 4326), geom)""" % (
-                tile_buffer, simplify_threshold, release,),
+                   simplify_threshold, release,),
             {'minx': minx, 'miny': miny, 'maxx': maxx, 'maxy': maxy, 'sumlev': sumlevel}
         )
 
@@ -1517,7 +1515,7 @@ def full_text_search():
 
         '''
 
-        return "https://censusreporter.org/profiles/" + full_geoid + "/"
+        return app.config.get('SITE_URL') + "/profiles/" + full_geoid + "/"
 
     def build_table_url(table_id):
         ''' Builds the CensusReporter URL out of table_id.
@@ -1528,7 +1526,7 @@ def full_text_search():
         "http://censusreporter.org/tables/B06009/"
         '''
 
-        return "https://censusreporter.org/tables/" + table_id + "/"
+        return app.config.get('SITE_URL') + "/tables/" + table_id + "/"
 
 
     # Build query by replacing apostrophes with spaces, separating words
@@ -1637,7 +1635,7 @@ def get_child_geoids_by_gis(release, parent_geoid, child_summary_level):
     result = db.session.execute(
         """SELECT child.full_geoid
            FROM tiger2016.census_name_lookup parent
-           JOIN tiger2014.census_name_lookup child ON ST_Intersects(parent.geom, child.geom) AND child.sumlevel=:child_sumlevel
+           JOIN tiger2016.census_name_lookup child ON ST_Intersects(parent.geom, child.geom) AND child.sumlevel=:child_sumlevel
            WHERE parent.full_geoid=:parent_geoid AND parent.sumlevel=:parent_sumlevel""",
         {'child_sumlevel': child_summary_level, 'parent_geoid': parent_geoid, 'parent_sumlevel': parent_sumlevel}
     )
