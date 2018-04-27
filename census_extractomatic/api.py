@@ -63,7 +63,7 @@ default_table_search_release = allowed_acs[1]
 
 # Allowed TIGER releases in newest order
 allowed_tiger = [
-    'tiger2016',
+    'tiger2016'
 ]
 
 allowed_searches = [
